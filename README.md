@@ -118,38 +118,64 @@ EXEC sp_report_1
 **Решение:** для вычисления долю продаж с НДС товара продажи с НДС были поделены на их валовую стоимость, после чего из таблиц `dim_stores` и `dim_date` были получены названия аптек и даты соответственно. Затем с помощью `ORDER BY` выполнена группировка по доли продаж с НДС.
 
 ```sql
-  CASE 
-    WHEN SUM(f.sale_net) = 0 THEN 0 
-    ELSE (SUM(f.sale_net) / NULLIF(SUM(f.sale_grs * f.quantity), 0)) * 100 
-  END AS [Доля продаж, с НДС %]
-FROM       
-  [dbo].[fct_cheque] AS f        
-INNER JOIN       
-  dim_goods AS g ON g.good_id = f.good_id        
-INNER JOIN       
-  dbo.dim_stores AS s ON s.store_id = f.store_id
-INNER JOIN       
-  dbo.dim_date AS d ON d.did = f.date_id
-WHERE       
-  f.date_id BETWEEN @date_from_int AND @date_to_int        
-  AND g.group_name IN (SELECT Value FROM dbo.SplitString(@good_group_name, ', '))        
-GROUP BY 
-  d.td,
-  s.store_name,
-  g.group_name
-ORDER BY 
-  [Доля продаж, с НДС %] DESC;
+        CASE 
+            WHEN gs.total_group_sales = 0 THEN 0 
+            ELSE (SUM(f.sale_net * f.quantity) / gs.total_group_sales)
+        END AS [Доля от продаж, с НДС %]
+    FROM       
+        [dbo].[fct_cheque] AS f        
+    INNER JOIN       
+        dim_goods AS g ON g.good_id = f.good_id        
+    INNER JOIN       
+        dbo.dim_stores AS s ON s.store_id = f.store_id
+    INNER JOIN       
+        dbo.dim_date AS d ON d.did = f.date_id
+    LEFT JOIN 
+        GroupSales gs ON gs.store_id = f.store_id AND gs.group_name = g.group_name AND gs.sale_date = d.d
+    WHERE       
+        f.date_id BETWEEN @date_from_int AND @date_to_int        
+        AND g.group_name IN (SELECT Value FROM dbo.SplitString(@good_group_name, ','))        
+    GROUP BY
+        d.td,
+        s.store_name,
+        g.group_name,
+        g.good_name,
+        gs.total_group_sales
+    ORDER BY 
+        d.td ASC,
+        [Доля от продаж, с НДС %] DESC;
+END;
+```
+
+Также сформирован подзапрос для расчета суммы продаж с НДС в конкретной аптеке в определенный день:
+
+```sql
+ -- Подзапрос для расчета суммы продаж в конкретной аптеке
+    WITH GroupSales AS (
+        SELECT 
+            f.store_id,
+            g.group_name,
+            d.d AS sale_date,
+            SUM(f.sale_net * f.quantity) AS total_group_sales
+        FROM       
+            [dbo].[fct_cheque] AS f        
+        INNER JOIN       
+            dim_goods AS g ON g.good_id = f.good_id        
+        INNER JOIN       
+            dbo.dim_date AS d ON d.did = f.date_id
+        WHERE       
+            f.date_id BETWEEN @date_from_int AND @date_to_int        
+            AND g.group_name IN (SELECT Value FROM dbo.SplitString(@good_group_name, ', '))
+        GROUP BY 
+            f.store_id,
+            g.group_name,
+            d.d
+    )
 ```
 
 **Результат:**
-Ниже приведен фрагмент получившегося результата для группы товаров _Биологически активные добавки_. Весь результат представлен в файле [result.csv](https://github.com/VaniaGalimzianov/SQL_Task/blob/main/result.csv).
-
-|Дата | Название аптеки |Группа товаров| Общая стоимость товаров, с НДС | Общее количество товаров | Средняя цена закупки руб., без НДС | Маржа руб., без НДС | Наценка %, без НДС | Доля продаж, с НДС %|
-|:----|:----------------|:-------------|:-------------------------------|:-------------------------|:-----------------------------------|:--------------------|:-----------------|:------------------|
-| 26.07.2017 | Аптека-37 | Биологически активные добавки | 2668.7588 | 5.00 | 476.0522| 327,4388 | 13,75 | 98,56 |
-| 10.06.2017 | Аптека-37 | Биологически активные добавки | 1198.7398	| 9.00 | 95.3922 | 397.0698	| 46.24	| 95,47 |
-| ... |	... |	...	| ...	| ... | ... | ...	| ...	| ... |
-| 03.06.2017 | Аптека-9 |	Биологически активные добавки |	4322.5091 | 59.00 | 325.7327 | 11558.7658 | 60.14 |14.04|
+Весь результат представлен в файле [result.csv](https://github.com/VaniaGalimzianov/SQL_Task/blob/main/result.csv).
 
 **Пояснения:**
 * Получение значений названия аптек и даты проиходило с помощью `INNER JOIN` из таблиц `dim_stores` и `dim_date` по их `id`
+* Добавлен расчет показателя _Доля продаж позиции в аптеке от продажи группы товара в этой же аптеке_
