@@ -1,6 +1,6 @@
 -- Таблица для чеков
 CREATE TABLE receipts (
-    receipt_id UUID PRIMARY KEY,
+    receipt_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     terminalid VARCHAR(255),
     warehouseid INT,
     doc_type VARCHAR(10) CHECK (doc_type IN ('sale', 'return')),
@@ -10,8 +10,8 @@ CREATE TABLE receipts (
 
 -- Таблица для строк чеков
 CREATE TABLE receipt_lines (
-    line_id UUID PRIMARY KEY,
-    receipt_id UUID REFERENCES receipts(receipt_id),
+    line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    receipt_id UNIQUEIDENTIFIER REFERENCES receipts(receipt_id),
     itemid INT,
     discount_name VARCHAR(255),
     quantity INT,
@@ -24,7 +24,7 @@ CREATE TABLE receipt_lines (
 
 -- Таблица для возвратов
 CREATE TABLE returns (
-    id UUID PRIMARY KEY,
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     warehouse_id INT,
     docnum VARCHAR(255),
     docdate TIMESTAMP,
@@ -36,8 +36,8 @@ CREATE TABLE returns (
 
 -- Таблица для строк возвратов
 CREATE TABLE return_lines (
-    line_id UUID PRIMARY KEY,
-    return_id UUID REFERENCES returns(id),
+    line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    return_id UNIQUEIDENTIFIER REFERENCES returns(id),
     item_id INT,
     quantity INT,
     price DECIMAL(10, 2),
@@ -47,7 +47,7 @@ CREATE TABLE return_lines (
 
 -- Таблица для приходов
 CREATE TABLE income (
-    id UUID PRIMARY KEY,
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     warehouse_id INT,
     docdate TIMESTAMP,
     supplier_id INT,
@@ -61,12 +61,12 @@ CREATE TABLE income_lines (
     quantity INT,
     price DECIMAL(10, 2),
     amount DECIMAL(10, 2),
-    income_id UUID REFERENCES income(id)
+    income_id UNIQUEIDENTIFIER REFERENCES income(id)
 );
 
 -- Таблица для перемещений
 CREATE TABLE movegoods (
-    id UUID PRIMARY KEY,
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     src_warehouse_id INT,
     dst_warehouse_id INT,
     amount DECIMAL(10, 2),
@@ -77,8 +77,8 @@ CREATE TABLE movegoods (
 
 -- Таблица для строк перемещений
 CREATE TABLE movegood_lines (
-    line_id UUID PRIMARY KEY,
-    movegood_id UUID REFERENCES movegoods(id),
+    line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    movegood_id UNIQUEIDENTIFIER REFERENCES movegoods(id),
     item_id INT,
     quantity INT,
     price DECIMAL(10, 2),
