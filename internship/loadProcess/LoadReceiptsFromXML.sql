@@ -27,7 +27,7 @@ BEGIN
         -- Вставка данных в таблицу receipts
         INSERT INTO receipts (receipt_id, terminal_id, warehouse_id, doc_type, date, items_count)
         SELECT 
-            NEWID() AS receipt_id,  -- Генерируем GUID, если его нет в XML
+            Receipt.value('(receipt_id)[1]', 'UNIQUEIDENTIFIER'),
             Receipt.value('(terminalid)[1]', 'NVARCHAR(255)'),
             Receipt.value('(warehouseid)[1]', 'INT'),
             Receipt.value('(doc_type)[1]', 'NVARCHAR(10)'),
