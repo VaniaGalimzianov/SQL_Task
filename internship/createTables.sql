@@ -4,7 +4,7 @@ CREATE TABLE receipts (
     terminalid VARCHAR(255),
     warehouseid INT,
     doc_type VARCHAR(10) CHECK (doc_type IN ('sale', 'return')),
-    date TIMESTAMP,
+    date DATETIME2,
     items_count INT
 );
 
@@ -27,7 +27,7 @@ CREATE TABLE returns (
     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     warehouse_id INT,
     docnum VARCHAR(255),
-    docdate TIMESTAMP,
+    docdate DATETIME2,
     supplier_id INT,
     amount DECIMAL(10, 2),
     status INT,
@@ -49,7 +49,7 @@ CREATE TABLE return_lines (
 CREATE TABLE income (
     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     warehouse_id INT,
-    docdate TIMESTAMP,
+    docdate DATETIME2,
     supplier_id INT,
     amount DECIMAL(10, 2),
     status VARCHAR(10) CHECK (status IN ('accept', 'draft'))
@@ -72,7 +72,7 @@ CREATE TABLE movegoods (
     amount DECIMAL(10, 2),
     status INT,
     status_name VARCHAR(255),
-    created_date TIMESTAMP
+    created_date DATETIME2
 );
 
 -- Таблица для строк перемещений
