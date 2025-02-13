@@ -13,7 +13,6 @@ CREATE TABLE receipt_lines (
     line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     receipt_id UNIQUEIDENTIFIER REFERENCES receipts(receipt_id),
     itemid INT,
-    discount_name VARCHAR(255),
     quantity INT,
     pricebase DECIMAL(10, 2),
     pricesale DECIMAL(10, 2),
