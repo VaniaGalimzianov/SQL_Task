@@ -6,17 +6,17 @@ BEGIN
     DECLARE @XmlData XML;
     DECLARE @SQL NVARCHAR(MAX);
     DECLARE @LogInfo NVARCHAR(4000);
-	  DECLARE @LogError NVARCHAR(4000);
+    DECLARE @LogError NVARCHAR(4000);
     DECLARE @ErrorMessage NVARCHAR(4000);
-	  DECLARE @StartTime DATETIME2;
+    DECLARE @StartTime DATETIME2;
     DECLARE @EndTime DATETIME2;
 
     BEGIN TRY
-		SET DATEFORMAT dmy;
-		SET @StartTime = SYSDATETIME();
+        SET DATEFORMAT dmy;
+        SET @StartTime = SYSDATETIME();
 
-    -- Информация о начале загрузки
-		SET @LogInfo = 'Started loading XML from ' + @XmlFilePath;
+        -- Информация о начале загрузки
+        SET @LogInfo = 'Started loading XML from ' + @XmlFilePath;
 
         -- Динамическая загрузка XML файл в переменную
         SET @SQL = 'SELECT @XmlData = CAST(BulkColumn AS XML)
@@ -35,7 +35,7 @@ BEGIN
             Receipt.value('(items_count)[1]', 'INT')
         FROM @XmlData.nodes('/root/receipts/receipt') AS Receipt(Receipt);
 
-		SET @EndTime = SYSDATETIME();
+        SET @EndTime = SYSDATETIME();
 
         -- Логирование успешной загрузки
         EXEC LogProcess 'LoadReceiptsFromXML', 'Successful data load into table receipts', @StartTime, @EndTime;
@@ -44,7 +44,7 @@ BEGIN
     BEGIN CATCH
         -- Логировние ошибки загрузки
         SET @ErrorMessage = ERROR_MESSAGE();
-		    SET @LogError = 'Error: ' + @ErrorMessage; 
+        SET @LogError = 'Error: ' + @ErrorMessage; 
         EXEC LogProcess 'LoadReceiptsFromXML', @LogError, @StartTime, @EndTime;
     END CATCH;
 END;
