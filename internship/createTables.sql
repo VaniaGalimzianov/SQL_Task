@@ -29,7 +29,7 @@ CREATE TABLE returns (
     docdate DATETIME2,
     supplier_id INT,
     amount DECIMAL(10, 2),
-    status INT,
+    status VARCHAR(255),
     status_name VARCHAR(255)
 );
 
