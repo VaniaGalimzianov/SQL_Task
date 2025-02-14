@@ -23,7 +23,7 @@ CREATE TABLE receipt_lines (
 
 -- Таблица для возвратов
 CREATE TABLE returns (
-    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id INT PRIMARY KEY,
     warehouse_id INT,
     docnum VARCHAR(255),
     docdate DATETIME2,
@@ -33,10 +33,10 @@ CREATE TABLE returns (
     status_name VARCHAR(255)
 );
 
--- Таблица для строк возвратов
+-- Таблица строк возвратов
 CREATE TABLE return_lines (
-    line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    return_id UNIQUEIDENTIFIER REFERENCES returns(id),
+    line_id INT PRIMARY KEY,
+    return_id INT REFERENCES returns(id) ON DELETE CASCADE, -- Автоудаление строк при удалении возврата
     item_id INT,
     quantity INT,
     price DECIMAL(10, 2),
