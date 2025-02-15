@@ -46,21 +46,21 @@ CREATE TABLE return_lines (
 
 -- Таблица для приходов
 CREATE TABLE income (
-    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id INT PRIMARY KEY,
     warehouse_id INT,
     docdate DATETIME2,
     supplier_id INT,
     amount DECIMAL(10, 2),
-    status VARCHAR(10) CHECK (status IN ('accept', 'draft'))
+    status VARCHAR(50)
 );
 
 -- Таблица для строк приходов
 CREATE TABLE income_lines (
     item_id INT,
-    quantity INT,
+    quantity DECIMAL(10, 2),
     price DECIMAL(10, 2),
     amount DECIMAL(10, 2),
-    income_id UNIQUEIDENTIFIER REFERENCES income(id)
+    income_id INT REFERENCES income(id)
 );
 
 -- Таблица для перемещений
