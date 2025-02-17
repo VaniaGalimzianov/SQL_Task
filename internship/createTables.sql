@@ -13,7 +13,7 @@ CREATE TABLE receipt_lines (
     line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     receipt_id UNIQUEIDENTIFIER REFERENCES receipts(receipt_id),
     itemid INT,
-    quantity INT,
+    quantity DECIMAL(10, 3),
     pricebase DECIMAL(10, 2),
     pricesale DECIMAL(10, 2),
     discount DECIMAL(10, 2),
@@ -38,7 +38,7 @@ CREATE TABLE return_lines (
     line_id INT PRIMARY KEY,
     return_id INT REFERENCES returns(id) ON DELETE CASCADE, -- Автоудаление строк при удалении возврата
     item_id INT,
-    quantity INT,
+    quantity DECIMAL(10, 3),
     price DECIMAL(10, 2),
     amount DECIMAL(10, 2),
     expir_date DATE
