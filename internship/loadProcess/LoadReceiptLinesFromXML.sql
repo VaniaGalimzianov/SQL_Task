@@ -16,37 +16,38 @@ BEGIN
         SET DATEFORMAT dmy;
         SET @StartTime = SYSDATETIME();
 
-        -- Информация о начале загрузки
+        -- Логируем начало загрузки
         SET @LogInfo = 'Started loading XML from ' + @XmlFilePath;
 
-        -- Динамическая загрузка XML файла в переменную
+        -- Загружаем XML-файл в переменную
         SET @SQL = 'SELECT @XmlData = CAST(BulkColumn AS XML)
                     FROM OPENROWSET(BULK ''' + @XmlFilePath + ''', SINGLE_BLOB) AS x;';
-
         EXEC sp_executesql @SQL, N'@XmlData XML OUTPUT', @XmlData OUTPUT;
 
-        -- Вставка данных в таблицу receipt_lines
+        -- Вставляем данные в таблицу receipt_lines
         INSERT INTO receipt_lines (line_id, receipt_id, item_id, quantity, pricebase, pricesale, discount, amount, cogs)
         SELECT 
-            NEWID() AS line_id,
-            ReceiptLine.value('(receipt_id)[1]', 'UNIQUEIDENTIFIER'),
-            ReceiptLine.value('(itemid)[1]', 'INT'),
-            ReceiptLine.value('(quantity)[1]', 'DECIMAL(10,2)'),
-            ReceiptLine.value('(pricebase)[1]', 'DECIMAL(10,2)'),
-            ReceiptLine.value('(pricesale)[1]', 'DECIMAL(10,2)'),
-            ReceiptLine.value('(discount)[1]', 'DECIMAL(10,2)'),
-            ReceiptLine.value('(amount)[1]', 'DECIMAL(10,2)'),
-            ReceiptLine.value('(cogs)[1]', 'DECIMAL(10,2)')
-        FROM @XmlData.nodes('/root/receipts/receipt') AS ReceiptLine(ReceiptLine);
+            ISNULL(Item.value('(line_id)[1]', 'UNIQUEIDENTIFIER'), NEWID()) AS line_id,
+            Receipt.value('(receipt_id)[1]', 'UNIQUEIDENTIFIER'),
+            Item.value('(itemid)[1]', 'INT'),
+            ISNULL(Item.value('(quantity)[1]', 'DECIMAL(10,3)'), 0),
+            ISNULL(Item.value('(pricebase)[1]', 'DECIMAL(10,2)'), 0.00),
+            ISNULL(Item.value('(pricesale)[1]', 'DECIMAL(10,2)'), 0.00),
+            ISNULL(Receipt.value('(discount)[1]', 'DECIMAL(10,2)'), 0.00),
+            ISNULL(Receipt.value('(amount)[1]', 'DECIMAL(10,2)'), 0.00),
+            ISNULL(Item.value('(cogs)[1]', 'DECIMAL(10,2)'), 0.00)
+        FROM @XmlData.nodes('/root/receipts/receipt') AS Receipt(Receipt)
+        CROSS APPLY Receipt.nodes('items/item') AS Item(Item)
+        WHERE Receipt.value('(receipt_id)[1]', 'UNIQUEIDENTIFIER') IN (SELECT receipt_id FROM receipts);
 
         SET @EndTime = SYSDATETIME();
 
-        -- Логирование успешной загрузки
+        -- Логируем успешную загрузку
         EXEC LogProcess 'LoadReceiptLinesFromXML', 'Successful data load into table receipt_lines', @StartTime, @EndTime;
 
     END TRY
     BEGIN CATCH
-        -- Логирование ошибки загрузки
+        -- Логируем ошибку
         SET @ErrorMessage = ERROR_MESSAGE();
         SET @LogError = 'Error: ' + @ErrorMessage; 
         EXEC LogProcess 'LoadReceiptLinesFromXML', @LogError, @StartTime, @EndTime;
