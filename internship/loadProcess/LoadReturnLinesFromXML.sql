@@ -16,35 +16,36 @@ BEGIN
         SET DATEFORMAT dmy;
         SET @StartTime = SYSDATETIME();
 
-        -- Информация о начале загрузки
+        -- Логируем начало загрузки
         SET @LogInfo = 'Started loading XML from ' + @XmlFilePath;
 
-        -- Динамическая загрузка XML файла в переменную
+        -- Загружаем XML-файл в переменную
         SET @SQL = 'SELECT @XmlData = CAST(BulkColumn AS XML)
                     FROM OPENROWSET(BULK ''' + @XmlFilePath + ''', SINGLE_BLOB) AS x;';
-
         EXEC sp_executesql @SQL, N'@XmlData XML OUTPUT', @XmlData OUTPUT;
 
-        -- Вставка данных в таблицу return_lines
+        -- Вставляем данные в таблицу return_lines, связывая return_id с товарами
         INSERT INTO return_lines (line_id, return_id, item_id, quantity, price, amount, expir_date)
         SELECT 
-            ReceiptLine.value('(line_id)[1]', 'INT'),
-            ReceiptLine.value('(return_id)[1]', 'INT'),
-            ReceiptLine.value('(item_id)[1]', 'INT'),
-            ReceiptLine.value('(quantity)[1]', 'INT'),
-            ReceiptLine.value('(price)[1]', 'DECIMAL(10, 2)'),
-            ReceiptLine.value('(amount)[1]', 'DECIMAL(10,2)'),
-            ReceiptLine.value('(expir_date)[1]', 'DATE')
-        FROM @XmlData.nodes('/root/returns/return') AS ReceiptLine(ReceiptLine);
+            Item.value('(line_id)[1]', 'INT'),
+            ReturnData.value('(id)[1]', 'INT'),
+            ISNULL(Item.value('(item_id)[1]', 'INT'), 0),
+            ISNULL(Item.value('(quantity)[1]', 'DECIMAL(10,3)'), 0.000),
+            ISNULL(Item.value('(price)[1]', 'DECIMAL(10,2)'), 0.00),
+            ISNULL(Item.value('(amount)[1]', 'DECIMAL(10,2)'), 0.00),
+            TRY_CAST(Item.value('(expir_date)[1]', 'NVARCHAR(10)') AS DATE)
+        FROM @XmlData.nodes('/root/returns/return') AS ReturnData(ReturnData)
+        CROSS APPLY ReturnData.nodes('items/item') AS Item(Item)
+        WHERE ReturnData.value('(id)[1]', 'INT') IN (SELECT id FROM returns);
 
         SET @EndTime = SYSDATETIME();
 
-        -- Логирование успешной загрузки
+        -- Логируем успешную загрузку
         EXEC LogProcess 'LoadReturnLinesFromXML', 'Successful data load into table return_lines', @StartTime, @EndTime;
 
     END TRY
     BEGIN CATCH
-        -- Логирование ошибки загрузки
+        -- Логируем ошибку
         SET @ErrorMessage = ERROR_MESSAGE();
         SET @LogError = 'Error: ' + @ErrorMessage; 
         EXEC LogProcess 'LoadReturnLinesFromXML', @LogError, @StartTime, @EndTime;
