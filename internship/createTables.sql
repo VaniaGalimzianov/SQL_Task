@@ -65,22 +65,22 @@ CREATE TABLE income_lines (
 
 -- Таблица для перемещений
 CREATE TABLE movegoods (
-    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    id INT PRIMARY KEY,
     src_warehouse_id INT,
     dst_warehouse_id INT,
     amount DECIMAL(10, 2),
-    status INT,
+    status VARCHAR(255),
     status_name VARCHAR(255),
     created_date DATETIME2
 );
 
 -- Таблица для строк перемещений
 CREATE TABLE movegood_lines (
-    line_id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    movegood_id UNIQUEIDENTIFIER REFERENCES movegoods(id),
+    line_id INT PRIMARY KEY,
+    movegood_id INT REFERENCES movegoods(id),
     item_id INT,
-    quantity INT,
-    price DECIMAL(10, 2),
+    quantity DECIMAL(10, 3),
+    price DECIMAL(10, 4),
     amount DECIMAL(10, 2)
 );
 
