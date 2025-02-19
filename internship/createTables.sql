@@ -93,6 +93,6 @@ CREATE TABLE stock (
 CREATE TABLE stock_lines (
     id INT PRIMARY KEY,
     stock_id INT REFERENCES stock(id),
-    quantity INT,
+    quantity DECIMAL(10, 3),
     cogs DECIMAL(10, 2)
 );
