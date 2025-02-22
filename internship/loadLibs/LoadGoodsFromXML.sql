@@ -25,7 +25,6 @@ BEGIN
                 Item.value('(name)[1]', 'NVARCHAR(255)') AS name,
                 Item.value('(manufacturer_id)[1]', 'INT') AS manufacturer_id,
                 Item.value('(barcodes)[1]', 'NVARCHAR(100)') AS barcodes,
-                Item.value('(vat_percent)[1]', 'DECIMAL(5,2)') AS vat_percent,
                 Item.value('(created_date)[1]', 'DATETIME') AS created_date,
                 Item.value('(last_update_date)[1]', 'DATETIME') AS last_update_date
             FROM @XmlData.nodes('/root/items/item') AS ItemData(Item)
@@ -36,11 +35,10 @@ BEGIN
                 target.name = source.name,
                 target.manufacturer_id = source.manufacturer_id,
                 target.barcodes = source.barcodes,
-                target.vat_percent = source.vat_percent,
                 target.last_update_date = source.last_update_date
         WHEN NOT MATCHED THEN
-            INSERT (id, name, manufacturer_id, barcodes, vat_percent, created_date, last_update_date)
-            VALUES (source.id, source.name, source.manufacturer_id, source.barcodes, source.vat_percent, source.created_date, source.last_update_date);
+            INSERT (id, name, manufacturer_id, barcodes, created_date, last_update_date)
+            VALUES (source.id, source.name, source.manufacturer_id, source.barcodes, source.created_date, source.last_update_date);
 
         -- Логирование успешной загрузки
         SET @EndTime = SYSDATETIME();
