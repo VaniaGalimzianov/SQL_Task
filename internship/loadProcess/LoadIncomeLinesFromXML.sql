@@ -20,7 +20,7 @@ BEGIN
         SET @LogInfo = 'Started loading XML from ' + @XmlFilePath;
 
         -- Очищаем таблицу перед загрузкой
-        TRUNCATE TABLE income;
+        TRUNCATE TABLE income_lines;
 
         -- Загружаем XML файл в переменную
         SET @SQL = 'SELECT @XmlData = CAST(BulkColumn AS XML)
