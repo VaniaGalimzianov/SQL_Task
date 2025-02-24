@@ -85,18 +85,10 @@ CREATE TABLE movegood_lines (
 );
 
 -- Таблица для текущих остатков
-CREATE TABLE stores (
-    id INT PRIMARY KEY,
-    name NVARCHAR(255) NOT NULL,
-    address NVARCHAR(255) NOT NULL,
-    phone NVARCHAR(50),
-    open_time TIME,
-    close_time TIME,
-    created_date DATETIME2,
-    last_update_date DATETIME2,
-    lat DECIMAL(15,8),
-    lon DECIMAL(15,8),
-    location_name NVARCHAR(100),
-    organisation_id INT,
-    manager_user_id INT
+CREATE TABLE stock (
+    warehouse_id INT,
+    item_id INT,
+    quantity DECIMAL(18,3),
+    cogs DECIMAL(18,2),
+    PRIMARY KEY (warehouse_id, item_id)
 );
