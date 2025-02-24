@@ -23,3 +23,12 @@ CREATE TABLE dbo.Manufacturers (
     created_date DATETIME NOT NULL,
     last_update_date DATETIME NOT NULL
 );
+
+CREATE TABLE dbo.Suppliers (
+    id INT PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    created_date DATETIME NOT NULL,
+    last_update_date DATETIME NOT NULL,
+    external_id INT NOT NULL,
+    type_name NVARCHAR(255) NOT NULL
+);
