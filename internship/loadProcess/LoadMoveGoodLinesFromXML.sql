@@ -39,7 +39,7 @@ BEGIN
         CROSS APPLY Move.nodes('items/item') AS ItemData(Item);
 
         SET @EndTime = SYSDATETIME();
-        EXEC LogProcess 'LoadMoveGoodLinesFromXML', 'Successful data load into table movegoods', @StartTime, @EndTime;
+        EXEC LogProcess 'LoadMoveGoodLinesFromXML', 'Successful data load into table movegoods_lines', @StartTime, @EndTime;
     END TRY
     BEGIN CATCH
         SET @ErrorMessage = ERROR_MESSAGE();
