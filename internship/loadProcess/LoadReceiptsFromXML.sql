@@ -18,6 +18,9 @@ BEGIN
         -- Информация о начале загрузки
         SET @LogInfo = 'Started loading XML from ' + @XmlFilePath;
 
+        -- Очищаем таблицу перед загрузкой
+        TRUNCATE TABLE receipts;
+
         -- Динамическая загрузка XML файл в переменную
         SET @SQL = 'SELECT @XmlData = CAST(BulkColumn AS XML)
                     FROM OPENROWSET(BULK ''' + @XmlFilePath + ''', SINGLE_BLOB) AS x;';
