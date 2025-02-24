@@ -16,3 +16,10 @@ CREATE TABLE dbo.Goods (
     created_date DATETIME NOT NULL,
     last_update_date DATETIME NOT NULL
 );
+
+CREATE TABLE dbo.Manufacturers (
+    id INT PRIMARY KEY,
+    name NVARCHAR(255) NOT NULL,
+    created_date DATETIME NOT NULL,
+    last_update_date DATETIME NOT NULL
+);
